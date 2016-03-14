@@ -5,8 +5,8 @@
 ' The objective of this script is to allow archivists to find groups of records
 ' that may be inactive because of their age.  It is designed to be run across
 ' large networked file systems, although it can be run across any storage device.  
-' The software finds the largest possible groupings of folders that are a given number of 
-' years old, based on the date last modified attribute.  
+' The software finds the largest possible groupings of folders with files in them
+' that are a given number of years old, based on the date last modified attribute.  
 ' Since this atribute can be easily and accidentally modified (e.g., someone opening
 ' a file and saving it), the program allows for some fuzzy math: 
 ' allowing a threshold where some percentage of files must be X years old.  
