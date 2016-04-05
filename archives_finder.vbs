@@ -1,12 +1,12 @@
 ' ARCHIVES FINDER
-' archives_finders.vbs
+' archives_finder.vbs
 ' 
 ' DESCRIPTION:
 ' The objective of this script is to allow archivists to find groups of records
 ' that may be inactive because of their age.  It is designed to be run across
 ' large networked file systems, although it can be run across any storage device.  
-' The software finds the largest possible groupings of folders with files in them
-' that are a given number of years old, based on the date last modified attribute.  
+' The software finds the largest possible groupings of folders that are a given number of 
+' years old, based on the date last modified attribute.  
 ' Since this atribute can be easily and accidentally modified (e.g., someone opening
 ' a file and saving it), the program allows for some fuzzy math: 
 ' allowing a threshold where some percentage of files must be X years old.  
@@ -68,7 +68,7 @@ end if
 fuzzy = cint (fuzzy)
 
 zSourceDir = BrowseFolder( "", False )
-' zSourceDir = "E:\arch models project"
+' zSourceDir = "E:\whole_collection\As Retrieved"
 
 if NOT fso.FolderExists (zSourceDir) then
 	MsgBox ("Folder does not exist.  Quitting...")
@@ -80,6 +80,11 @@ end if
 
 ' compute earliest date
 dim year_part, months_float
+dim  g_avgdays, g_filesize, g_totalfiles
+g_avgdays = 0
+g_filesize = 0
+g_totalfiles = 0
+
 year_part = int (years)
 
 months_float = years - year_part
@@ -89,21 +94,25 @@ earliestDate = dateadd("yyyy", year_part*-1, date)
 earliestDate = dateadd("m", months_float*-1, earliestDate)
 
 ' find groups of folders
-if SearchFiles (zSourceDir) then
-	addPath zSourceDir, outPaths 
+if SearchFiles (zSourceDir, g_avgdays, g_filesize, g_totalfiles) then
+	if g_totalfiles > 0 then
+		addPath zSourceDir & "," & FormatNumber((g_avgdays / g_totalfiles) / 365, 2)  & "," & FormatNumber(g_filesize / 1024 / 1024, 2) & "," & g_totalfiles, outPaths	
+	end if
 end if
 
 ' output results to user
 if outPaths = "" then
 	MsgBox ("No paths were found matching the criteria that you specified.")
 else
-	Set ofile = fso.OpenTextFile ("output.txt", 2, true)
-	ofile.writeline "archives_finder.vbs ran on " & now & " to look for largest possible groups of folders that have files where " & fuzzy & "% are " & years & " years old.  Found paths include:"
+	Set ofile = fso.OpenTextFile ("output.csv", 2, true)
+	ofile.writeline "archives_finder.vbs ran on " & now & " to look for largest possible groups of folders that have files where " & fuzzy & "% are " & years & " years old.  The starting directory was: " & zSourceDir & "  Found paths include:"
+	ofile.writeline "path,average years old,directory size (MB), total files" 
 	ofile.write outPaths
 	ofile.close
 
-	MsgBox ("Search results complete.  Please see output.txt for a list of folders meeting your criteria.")
+	MsgBox ("Search results complete.  Please see output.csv for a list of folders meeting your criteria.")
 end if
+
 
 ' append path to list of paths
 sub addPath (path, ByRef pathname)
@@ -117,13 +126,15 @@ end sub
 
 ' recursively search for paths that have files that are old
 ' returns true if meets the criteria
-function SearchFiles (path)
-	dim totalFiles, totalEarlyFiles, paths, oFolder, subfolders, sf, f
-	dim possiblepaths
+function SearchFiles (path, ByRef days, ByRef filesize, ByRef totalFiles)
+	dim totalEarlyFiles, paths, oFolder, subfolders, sf, f
 	dim totalFolders, totalEarlyFolders, SearchFilesFolders, outPathsTemp
-	dim avgdays
 	totalFiles = 0
 	totalEarlyFiles = 0
+	dim days_rec, filesize_rec, totalfiles_rec
+	
+	days = 0
+	filesize = 0
 	
 	Set oFolder = FSO.GetFolder(path)
     
@@ -138,10 +149,13 @@ function SearchFiles (path)
 				totalEarlyFiles = totalEarlyFiles + 1
 			end if
 					
+			days = days + datediff ("d", f.DateLastModified, now)	
+			filesize = filesize + f.size	
 			totalFiles = totalFiles + 1
 						
     	end if
     next
+    
     
     ' find out if the number of files meet a threshold
     SearchFiles = false
@@ -158,8 +172,13 @@ function SearchFiles (path)
 	SearchFilesFolders = true	
 	Set subfolders = oFolder.SubFolders
    	For Each sf in subfolders		
-    	if (SearchFiles (sf.Path)) then
-    		addPath sf.path, outPathsTemp		
+    	if (SearchFiles (sf.Path, days_rec, filesize_rec, totalfiles_rec)) then
+    		if totalfiles_rec > 0 then
+    			days = days + days_rec
+    			filesize = filesize + filesize_rec
+    			totalFiles = totalFiles + totalfiles_rec
+    			addPath sf.path & "," & FormatNumber((days_rec / totalFiles_rec) / 365, 2) & "," & FormatNumber(filesize_rec / 1024 / 1024, 2) & "," & totalfiles_rec, outPathsTemp 
+    		end if
     	else
     		SearchFilesFolders = false
     	end if
@@ -171,7 +190,7 @@ function SearchFiles (path)
     	SearchFiles = true
     else
     	SearchFiles = false
-    	addPath outPathsTemp, outPaths
+    	addPath outPathsTemp,outPaths
     end if
 end function
 
