@@ -1,5 +1,5 @@
 # Archives Finder
-archives_finders.vbs
+archives_finder.vbs
 
 DESCRIPTION:
 The objective of this script is to allow archivists to find groups of records
