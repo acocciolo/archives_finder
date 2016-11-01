@@ -26,6 +26,7 @@
 Option Explicit
 
 Dim years, zSourceDir, fso, fuzzy, earliestDate, ofile, outPaths
+Dim str_size, str_age
 dim default_years, default_confidence
 
 
@@ -96,7 +97,8 @@ earliestDate = dateadd("m", months_float*-1, earliestDate)
 ' find groups of folders
 if SearchFiles (zSourceDir, g_avgdays, g_filesize, g_totalfiles) then
 	if g_totalfiles > 0 then
-		addPath zSourceDir & "," & FormatNumber((g_avgdays / g_totalfiles) / 365, 2)  & "," & FormatNumber(g_filesize / 1024 / 1024, 2) & "," & g_totalfiles, outPaths	
+		
+		addPath zSourceDir & "," & CStr(FormatNumber((g_avgdays / g_totalfiles) / 365, 2))  & "," & CStr(FormatNumber(g_filesize / 1024 / 1024, 2)) & "," & g_totalfiles, outPaths	
 	end if
 end if
 
@@ -177,7 +179,7 @@ function SearchFiles (path, ByRef days, ByRef filesize, ByRef totalFiles)
     			days = days + days_rec
     			filesize = filesize + filesize_rec
     			totalFiles = totalFiles + totalfiles_rec
-    			addPath sf.path & "," & FormatNumber((days_rec / totalFiles_rec) / 365, 2) & "," & FormatNumber(filesize_rec / 1024 / 1024, 2) & "," & totalfiles_rec, outPathsTemp 
+    			addPath sf.path & "," & CStr(FormatNumber((days_rec / totalFiles_rec) / 365, 2)) & "," & CStr(FormatNumber(filesize_rec / 1024 / 1024, 2)) & "," & totalfiles_rec, outPathsTemp 
     		end if
     	else
     		SearchFilesFolders = false
