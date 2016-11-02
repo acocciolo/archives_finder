@@ -106,7 +106,7 @@ end if
 if outPaths = "" then
 	MsgBox ("No paths were found matching the criteria that you specified.")
 else
-	Set ofile = fso.OpenTextFile ("output.csv", 2, true)
+	Set ofile = fso.OpenTextFile ("output.csv", 2, true, -1)
 	ofile.writeline "archives_finder.vbs ran on " & now & " to look for largest possible groups of folders that have files where " & fuzzy & "% are " & years & " years old.  The starting directory was: " & zSourceDir & "  Found paths include:"
 	ofile.writeline "path,average years old,directory size (MB), total files" 
 	ofile.write outPaths
