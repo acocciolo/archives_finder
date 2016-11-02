@@ -37,7 +37,7 @@ Set FSO = CreateObject("Scripting.FileSystemObject")
 
 
 ' get parameters from user
-years = InputBox ( "This script will locate groups of records that may be inactive, finding the largest possible groupings.  First question, how many years old should files be (can use decimal points, e.g., 1.5 means one and a half years)?", "Enter number of years old", default_years)
+years = InputBox ( "This script will locate groups of records that may be inactive, finding the largest possible groupings.  First question, how many years old should files btext (can use decimal points, e.g., 1.5 means one and a half years)?", "Enter number of years old", default_years)
 
 if not isnumeric(years) then
 	MsgBox ("Year must be numeric.  Quitting...")
@@ -106,11 +106,12 @@ end if
 if outPaths = "" then
 	MsgBox ("No paths were found matching the criteria that you specified.")
 else
-	Set ofile = fso.OpenTextFile ("output.csv", 2, true)
-	ofile.writeline "archives_finder.vbs ran on " & now & " to look for largest possible groups of folders that have files where " & fuzzy & "% are " & years & " years old.  The starting directory was: " & zSourceDir & "  Found paths include:"
-	ofile.writeline "path,average years old,directory size (MB), total files" 
-	ofile.write outPaths
-	ofile.close
+	dim final_output
+	' Set ofile = fso.OpenTextFile ("output.csv", 2, true)
+	final_output = "archives_finder.vbs ran on " & now & " to look for largest possible groups of folders that have files where " & fuzzy & "% are " & years & " years old.  The starting directory was: " & zSourceDir & "  Found paths include:" & vbNewline & "path,average years old,directory size (MB), total files" & vbNewline & outPaths
+	'ofile.write outPaths
+	' ofile.close
+	Save2File final_output, "output.csv"
 
 	MsgBox ("Search results complete.  Please see output.csv for a list of folders meeting your criteria.")
 end if
@@ -257,3 +258,15 @@ Function BrowseFolder( myStartLocation, blnSimpleDialog )
     ' Return the path of the selected folder
     BrowseFolder = objPath
 End Function
+
+Sub Save2File (sText, sFile)
+    Dim oStream
+    Set oStream = CreateObject("ADODB.Stream")
+    With oStream
+        .Open
+        .CharSet = "utf-8"
+        .WriteText sText
+        .SaveToFile sFile, 2
+    End With
+    Set oStream = Nothing
+End Sub
