@@ -98,7 +98,7 @@ earliestDate = dateadd("m", months_float*-1, earliestDate)
 if SearchFiles (zSourceDir, g_avgdays, g_filesize, g_totalfiles) then
 	if g_totalfiles > 0 then
 		
-		addPath zSourceDir & "," & CStr(FormatNumber((g_avgdays / g_totalfiles) / 365, 2))  & "," & CStr(FormatNumber(g_filesize / 1024 / 1024, 2)) & "," & g_totalfiles, outPaths	
+		addPath csvEscape(zSourceDir) & "," & csvEscape(CStr(FormatNumber((g_avgdays / g_totalfiles) / 365, 2)))  & "," & CSVEscape(CStr(FormatNumber(g_filesize / 1024 / 1024, 2))) & "," & CSVEscape(g_totalfiles), outPaths	
 	end if
 end if
 
@@ -180,7 +180,7 @@ function SearchFiles (path, ByRef days, ByRef filesize, ByRef totalFiles)
     			days = days + days_rec
     			filesize = filesize + filesize_rec
     			totalFiles = totalFiles + totalfiles_rec
-    			addPath sf.path & "," & CStr(FormatNumber((days_rec / totalFiles_rec) / 365, 2)) & "," & CStr(FormatNumber(filesize_rec / 1024 / 1024, 2)) & "," & totalfiles_rec, outPathsTemp 
+    			addPath csvEscape(sf.path) & "," & CSVEscape(CStr(FormatNumber((days_rec / totalFiles_rec) / 365, 2))) & "," & CSVEscape(CStr(FormatNumber(filesize_rec / 1024 / 1024, 2))) & "," & CSVEscape(totalfiles_rec), outPathsTemp 
     		end if
     	else
     		SearchFilesFolders = false
@@ -195,6 +195,11 @@ function SearchFiles (path, ByRef days, ByRef filesize, ByRef totalFiles)
     	SearchFiles = false
     	addPath outPathsTemp,outPaths
     end if
+end function
+
+function csvEscape(val)
+	val = Replace(val, """", """""")
+	csvEscape = """" & val & """"
 end function
 
 
